@@ -2,4 +2,7 @@
     <string name="app_name">TodoMap</string>
     <string name="title_activity_maps">Map</string>
     <string name="map_fragment">MapTodo</string>
+    <string name="location_required">We\'ll need the permission to locate you.</string>
+    <string name="turn_gps">Please turn on your GPS.</string>
+    <string name="no_locaion_found">No location found.</string>
 </resources>
