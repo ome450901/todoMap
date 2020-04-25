@@ -65,6 +65,7 @@ dependencies {
 
     // Google maps
     implementation 'com.google.android.gms:play-services-maps:17.0.0'
+    implementation 'com.google.android.gms:play-services-location:17.0.0'
 
     // Retrofit
     implementation "com.squareup.retrofit2:retrofit: $version_retrofit"
@@ -76,6 +77,10 @@ dependencies {
 
     // Retrofit coroutines adapter
     implementation "com.jakewharton.retrofit:retrofit2-kotlin-coroutines-adapter:$version_retrofit_coroutines_adapter"
+
+    // Permission Dispatcher
+    implementation "org.permissionsdispatcher:permissionsdispatcher:$version_permission_dispatcher"
+    kapt "org.permissionsdispatcher:permissionsdispatcher-processor:$version_permission_dispatcher"
 
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'androidx.test.ext:junit:1.1.1'
