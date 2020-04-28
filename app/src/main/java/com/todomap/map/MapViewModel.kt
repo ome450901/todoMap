@@ -1,17 +1,21 @@
 package com.todomap.map
 
 import android.app.Application
+import android.location.Address
+import android.location.Geocoder
 import android.location.Location
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Transformations
+import com.google.android.gms.maps.model.LatLng
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.todomap.R
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import java.util.*
 
 /**
  * @author WeiYi Yu
@@ -39,6 +43,13 @@ class MapViewModel(application: Application) : AndroidViewModel(application) {
     private val _bottomSheetState = MutableLiveData<Int>()
     val bottomSheetState: LiveData<Int>
         get() = _bottomSheetState
+
+    private val _currentLocation = MutableLiveData<LatLng>()
+    val currentLocation = Transformations.map(_currentLocation) {
+        val geocoder = Geocoder(application, Locale.getDefault())
+        val addresses: List<Address> = geocoder.getFromLocation(it.latitude, it.longitude, 1)
+        addresses[0].getAddressLine(0)
+    }
 
     val fabVisible = Transformations.map(_bottomSheetState) {
         it == BottomSheetBehavior.STATE_HIDDEN
@@ -73,6 +84,14 @@ class MapViewModel(application: Application) : AndroidViewModel(application) {
 
     fun onBottomSheetClosed() {
         _bottomSheetState.value = BottomSheetBehavior.STATE_HIDDEN
+    }
+
+    fun onLocationUpdated(location: LatLng) {
+        _currentLocation.value = location
+
+        if (_bottomSheetState.value != BottomSheetBehavior.STATE_HIDDEN) {
+            _bottomSheetState.value = BottomSheetBehavior.STATE_HALF_EXPANDED
+        }
     }
 
     override fun onCleared() {

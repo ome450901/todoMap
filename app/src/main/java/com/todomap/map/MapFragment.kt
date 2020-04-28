@@ -14,8 +14,11 @@ import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.Marker
+import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.material.snackbar.Snackbar
 import com.todomap.R
+import com.todomap.database.TodoDatabase
 import com.todomap.databinding.FragmentMapBinding
 import permissions.dispatcher.NeedsPermission
 import permissions.dispatcher.OnPermissionDenied
@@ -27,6 +30,12 @@ class MapFragment : Fragment(), OnMapReadyCallback {
     private lateinit var googleMap: GoogleMap
 
     private lateinit var viewModel: MapViewModel
+
+    private var mapMarker: Marker? = null
+
+    private val databaseDao by lazy {
+        TodoDatabase.getInstance(requireContext()).todoDatabaseDao
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -43,6 +52,11 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         viewModel.isMapReady.observe(viewLifecycleOwner, Observer { isMapReady ->
             if (isMapReady == true) {
                 requestLastLocationWithPermissionCheck()
+
+                googleMap.setOnMyLocationButtonClickListener {
+                    requestLastLocationWithPermissionCheck()
+                    true
+                }
             }
         })
 
@@ -61,10 +75,6 @@ class MapFragment : Fragment(), OnMapReadyCallback {
                 Snackbar.LENGTH_LONG
             ).show()
         })
-
-        binding.btnMyLocation.setOnClickListener {
-            requestLastLocationWithPermissionCheck()
-        }
 
         binding.fabCreateTodo.setOnClickListener {
             viewModel.onFabClicked()
@@ -95,6 +105,19 @@ class MapFragment : Fragment(), OnMapReadyCallback {
 
     @NeedsPermission(Manifest.permission.ACCESS_FINE_LOCATION)
     fun requestLastLocation() {
+        googleMap.isMyLocationEnabled = true
+        googleMap.setOnMapClickListener {
+            mapMarker?.remove()
+            mapMarker = googleMap.addMarker(
+                MarkerOptions()
+                    .position(it)
+                    .title("Marker!")
+            )
+            googleMap.animateCamera(CameraUpdateFactory.newLatLng(it))
+
+            viewModel.onLocationUpdated(it)
+        }
+
         viewModel.onRequestLastLocation()
     }
 
