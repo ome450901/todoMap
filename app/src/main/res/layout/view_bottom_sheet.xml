@@ -3,6 +3,17 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <data>
+
+        <variable
+            name="viewModel"
+            type="com.todomap.map.MapViewModel" />
+
+        <variable
+            name="test"
+            type="android.content.res.Resources" />
+    </data>
+
     <merge>
 
         <androidx.constraintlayout.widget.ConstraintLayout
@@ -12,9 +23,13 @@
             android:layout_height="match_parent"
             android:layout_gravity="bottom"
             android:padding="16dp"
+            app:behavior_fitToContents="false"
             app:behavior_hideable="true"
             app:behavior_peekHeight="100dp"
-            app:layout_behavior="@string/bottom_sheet_behavior">
+            app:bottomSheetState="@{viewModel.bottomSheetState}"
+            app:expandedTopOffsetRatio="@{0.2}"
+            app:layout_behavior="@string/bottom_sheet_behavior"
+            app:onBottomSheetClosed="@{viewModel.onBottomSheetClosed}">
 
             <androidx.appcompat.widget.AppCompatImageView
                 android:id="@+id/control_bar"

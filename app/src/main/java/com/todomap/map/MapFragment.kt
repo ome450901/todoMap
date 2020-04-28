@@ -2,11 +2,9 @@ package com.todomap.map
 
 import android.Manifest
 import android.os.Bundle
-import android.util.DisplayMetrics
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
@@ -16,7 +14,6 @@ import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
-import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.snackbar.Snackbar
 import com.todomap.R
 import com.todomap.databinding.FragmentMapBinding
@@ -31,8 +28,6 @@ class MapFragment : Fragment(), OnMapReadyCallback {
 
     private lateinit var viewModel: MapViewModel
 
-    private lateinit var behavior: BottomSheetBehavior<ConstraintLayout>
-
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View? {
@@ -40,16 +35,16 @@ class MapFragment : Fragment(), OnMapReadyCallback {
             DataBindingUtil.inflate(inflater, R.layout.fragment_map, container, false)
 
         val application = requireNotNull(this.activity).application
-
         viewModel = MapViewModelFactory(application).create(MapViewModel::class.java)
+
+        binding.viewModel = viewModel
+        binding.lifecycleOwner = this
 
         viewModel.isMapReady.observe(viewLifecycleOwner, Observer { isMapReady ->
             if (isMapReady == true) {
                 requestLastLocationWithPermissionCheck()
             }
         })
-
-        setupBottomSheet(binding)
 
         viewModel.location.observe(viewLifecycleOwner, Observer {
             val cameraPosition = CameraPosition.Builder()
@@ -68,29 +63,18 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         })
 
         binding.btnMyLocation.setOnClickListener {
-            behavior.state = BottomSheetBehavior.STATE_EXPANDED
+            requestLastLocationWithPermissionCheck()
+        }
+
+        binding.fabCreateTodo.setOnClickListener {
+            viewModel.onFabClicked()
         }
 
         val googleMapFragment =
             childFragmentManager.findFragmentById(R.id.googleMapFragment) as SupportMapFragment
         googleMapFragment.getMapAsync(this)
 
-        binding.lifecycleOwner = this
-
         return binding.root
-    }
-
-    private fun setupBottomSheet(binding: FragmentMapBinding) {
-        behavior = BottomSheetBehavior.from(binding.layout.bottomSheetLayout)
-
-        val displayMetrics = DisplayMetrics()
-        activity!!.windowManager.defaultDisplay.getMetrics(displayMetrics)
-
-        behavior.isFitToContents = false
-        //        behavior.halfExpandedRatio = 0.75f
-        behavior.expandedOffset = (displayMetrics.heightPixels * 0.2).toInt()
-
-        behavior.state = BottomSheetBehavior.STATE_HIDDEN
     }
 
     override fun onRequestPermissionsResult(

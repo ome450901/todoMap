@@ -5,6 +5,8 @@ import android.location.Location
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.Transformations
+import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.todomap.R
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -34,6 +36,18 @@ class MapViewModel(application: Application) : AndroidViewModel(application) {
     val snackbarEvent: LiveData<String>
         get() = _snackbarEvent
 
+    private val _bottomSheetState = MutableLiveData<Int>()
+    val bottomSheetState: LiveData<Int>
+        get() = _bottomSheetState
+
+    val fabVisible = Transformations.map(_bottomSheetState) {
+        it == BottomSheetBehavior.STATE_HIDDEN
+    }
+
+    init {
+        _bottomSheetState.value = BottomSheetBehavior.STATE_HIDDEN
+    }
+
     fun onMapReady() {
         _isMapReady.value = true
     }
@@ -53,6 +67,13 @@ class MapViewModel(application: Application) : AndroidViewModel(application) {
         _snackbarEvent.value = getApplication<Application>().getString(R.string.location_required)
     }
 
+    fun onFabClicked() {
+        _bottomSheetState.value = BottomSheetBehavior.STATE_EXPANDED
+    }
+
+    fun onBottomSheetClosed() {
+        _bottomSheetState.value = BottomSheetBehavior.STATE_HIDDEN
+    }
 
     override fun onCleared() {
         super.onCleared()

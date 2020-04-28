@@ -1,6 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:binding="http://schemas.android.com/tools">
+
+    <data>
+
+        <variable
+            name="viewModel"
+            type="com.todomap.map.MapViewModel" />
+    </data>
 
     <androidx.coordinatorlayout.widget.CoordinatorLayout
         android:layout_width="match_parent"
@@ -31,7 +39,18 @@
 
         <include
             android:id="@+id/layout"
-            layout="@layout/view_bottom_sheet" />
+            layout="@layout/view_bottom_sheet"
+            binding:viewModel="@{viewModel}" />
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/fabCreateTodo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|center_horizontal"
+            android:layout_marginBottom="24dp"
+            android:src="@drawable/ic_add_24dp"
+            app:fabVisible="@{viewModel.fabVisible}" />
+
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
 
 </layout>
