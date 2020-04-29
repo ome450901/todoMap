@@ -29,7 +29,6 @@
         </androidx.constraintlayout.widget.ConstraintLayout>
 
         <include
-            android:id="@+id/layout"
             layout="@layout/view_bottom_sheet"
             binding:viewModel="@{viewModel}" />
 

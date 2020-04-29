@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools">
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <data>
 
@@ -16,14 +15,14 @@
 
     <merge>
 
-        <androidx.constraintlayout.widget.ConstraintLayout
+        <LinearLayout
             android:id="@+id/bottomSheetLayout"
             style="@style/Widget.MaterialComponents.BottomSheet"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_gravity="bottom"
-            android:clickable="true"
             android:focusable="true"
+            android:orientation="vertical"
             android:padding="16dp"
             app:behavior_fitToContents="false"
             app:behavior_hideable="true"
@@ -31,37 +30,27 @@
             app:bottomSheetState="@{viewModel.bottomSheetState}"
             app:expandedTopOffsetRatio="@{0.2}"
             app:layout_behavior="@string/bottom_sheet_behavior"
-            app:onBottomSheetClosed="@{viewModel.onBottomSheetClosed}">
+            app:onBottomSheetClosed="@{viewModel::onBottomSheetClosed}">
 
             <androidx.appcompat.widget.AppCompatImageView
-                android:id="@+id/control_bar"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:background="@drawable/bottom_sheet_controll_bar"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
+                android:background="@drawable/bottom_sheet_controll_bar" />
 
             <TextView
-                android:id="@+id/textView"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
                 android:text="Create a Todo"
                 android:textSize="20dp"
-                android:textStyle="bold"
-                app:layout_constraintTop_toTopOf="@id/control_bar"
-                tools:layout_editor_absoluteX="16dp" />
+                android:textStyle="bold" />
 
             <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/textInputLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                android:hint="Title"
-                app:layout_constraintTop_toBottomOf="@+id/textView"
-                tools:layout_editor_absoluteX="16dp">
+                android:hint="Title">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:layout_width="match_parent"
@@ -69,30 +58,25 @@
             </com.google.android.material.textfield.TextInputLayout>
 
             <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/textInputLayout2"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:hint="Location"
-                app:layout_constraintTop_toBottomOf="@+id/textInputLayout"
-                tools:layout_editor_absoluteX="16dp">
+                android:hint="Location">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="@{viewModel.currentLocation}" />
+                    android:text="@{viewModel.markerAddress}" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <Button
-                android:id="@+id/button"
-                android:layout_width="wrap_content"
+                android:id="@+id/btnCreate"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_gravity="center"
                 android:layout_marginTop="16dp"
-                android:text="Create"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/textInputLayout2" />
+                android:text="Create" />
 
-        </androidx.constraintlayout.widget.ConstraintLayout>
+        </LinearLayout>
     </merge>
 </layout>

@@ -11,10 +11,7 @@ import androidx.lifecycle.Transformations
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.todomap.R
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import java.util.*
 
 /**
@@ -44,12 +41,9 @@ class MapViewModel(application: Application) : AndroidViewModel(application) {
     val bottomSheetState: LiveData<Int>
         get() = _bottomSheetState
 
-    private val _currentLocation = MutableLiveData<LatLng>()
-    val currentLocation = Transformations.map(_currentLocation) {
-        val geocoder = Geocoder(application, Locale.getDefault())
-        val addresses: List<Address> = geocoder.getFromLocation(it.latitude, it.longitude, 1)
-        addresses[0].getAddressLine(0)
-    }
+    private val _markerAddress = MutableLiveData<String>()
+    val markerAddress: LiveData<String>
+        get() = _markerAddress
 
     val fabVisible = Transformations.map(_bottomSheetState) {
         it == BottomSheetBehavior.STATE_HIDDEN
@@ -86,11 +80,22 @@ class MapViewModel(application: Application) : AndroidViewModel(application) {
         _bottomSheetState.value = BottomSheetBehavior.STATE_HIDDEN
     }
 
-    fun onLocationUpdated(location: LatLng) {
-        _currentLocation.value = location
+    fun onMarkerAdded(location: LatLng) {
+        uiScope.launch {
+            _markerAddress.value = withContext(Dispatchers.IO) {
+                try {
+                    val geocoder = Geocoder(getApplication(), Locale.getDefault())
+                    val addresses: List<Address> =
+                        geocoder.getFromLocation(location.latitude, location.longitude, 1)
+                    addresses[0].getAddressLine(0)
+                } catch (e: Exception) {
+                    e.message
+                }
+            }
 
-        if (_bottomSheetState.value != BottomSheetBehavior.STATE_HIDDEN) {
-            _bottomSheetState.value = BottomSheetBehavior.STATE_HALF_EXPANDED
+            if (_bottomSheetState.value != BottomSheetBehavior.STATE_HIDDEN) {
+                _bottomSheetState.value = BottomSheetBehavior.STATE_HALF_EXPANDED
+            }
         }
     }
 

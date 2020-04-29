@@ -97,8 +97,21 @@ class MapFragment : Fragment(), OnMapReadyCallback {
     }
 
     override fun onMapReady(map: GoogleMap) {
-        this.googleMap = map
-        googleMap.uiSettings.isZoomControlsEnabled = true
+        this.googleMap = map.apply {
+            uiSettings.isZoomControlsEnabled = true
+
+            setOnMapClickListener {
+                mapMarker?.remove()
+                mapMarker = googleMap.addMarker(
+                    MarkerOptions()
+                        .position(it)
+                        .title("Marker!")
+                )
+                googleMap.animateCamera(CameraUpdateFactory.newLatLng(it))
+
+                viewModel.onMarkerAdded(it)
+            }
+        }
 
         viewModel.onMapReady()
     }
@@ -106,18 +119,6 @@ class MapFragment : Fragment(), OnMapReadyCallback {
     @NeedsPermission(Manifest.permission.ACCESS_FINE_LOCATION)
     fun requestLastLocation() {
         googleMap.isMyLocationEnabled = true
-        googleMap.setOnMapClickListener {
-            mapMarker?.remove()
-            mapMarker = googleMap.addMarker(
-                MarkerOptions()
-                    .position(it)
-                    .title("Marker!")
-            )
-            googleMap.animateCamera(CameraUpdateFactory.newLatLng(it))
-
-            viewModel.onLocationUpdated(it)
-        }
-
         viewModel.onRequestLastLocation()
     }
 
@@ -125,5 +126,4 @@ class MapFragment : Fragment(), OnMapReadyCallback {
     fun onPermissionDenied() {
         viewModel.onPermissionDenied()
     }
-
 }
