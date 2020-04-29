@@ -27,7 +27,6 @@ fun setBottomSheetExpandedOffset(view: View, ratio: Double) {
 
 @BindingAdapter("bottomSheetState")
 fun setBottomSheetState(view: View, bottomSheetState: Int) {
-    println("Set state")
     val behavior = BottomSheetBehavior.from(view)
     behavior.state = bottomSheetState
 }

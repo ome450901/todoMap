@@ -12,8 +12,10 @@ data class Todo(
     @ColumnInfo(name = "title")
     val title: String,
 
-    @ColumnInfo(name = "location")
-    val location: String
+    @ColumnInfo(name = "latitude")
+    val latitude: Double,
 
+    @ColumnInfo(name = "longitude")
+    val longitude: Double
 
 )

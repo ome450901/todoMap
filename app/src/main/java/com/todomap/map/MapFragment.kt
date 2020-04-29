@@ -14,7 +14,6 @@ import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.material.snackbar.Snackbar
 import com.todomap.R
@@ -31,12 +30,6 @@ class MapFragment : Fragment(), OnMapReadyCallback {
 
     private lateinit var viewModel: MapViewModel
 
-    private var mapMarker: Marker? = null
-
-    private val databaseDao by lazy {
-        TodoDatabase.getInstance(requireContext()).todoDatabaseDao
-    }
-
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View? {
@@ -44,7 +37,8 @@ class MapFragment : Fragment(), OnMapReadyCallback {
             DataBindingUtil.inflate(inflater, R.layout.fragment_map, container, false)
 
         val application = requireNotNull(this.activity).application
-        viewModel = MapViewModelFactory(application).create(MapViewModel::class.java)
+        val databaseDao = TodoDatabase.getInstance(application).todoDatabaseDao
+        viewModel = MapViewModelFactory(databaseDao, application).create(MapViewModel::class.java)
 
         binding.viewModel = viewModel
         binding.lifecycleOwner = this
@@ -101,15 +95,18 @@ class MapFragment : Fragment(), OnMapReadyCallback {
             uiSettings.isZoomControlsEnabled = true
 
             setOnMapClickListener {
-                mapMarker?.remove()
-                mapMarker = googleMap.addMarker(
+                val marker = googleMap.addMarker(
                     MarkerOptions()
                         .position(it)
-                        .title("Marker!")
+                        .title("Chosen location")
                 )
                 googleMap.animateCamera(CameraUpdateFactory.newLatLng(it))
 
-                viewModel.onMarkerAdded(it)
+                viewModel.onMarkerAdded(it, marker)
+            }
+
+            setOnMarkerClickListener {
+                true
             }
         }
 

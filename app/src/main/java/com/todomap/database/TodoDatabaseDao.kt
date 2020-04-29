@@ -1,6 +1,5 @@
 package com.todomap.database
 
-import androidx.lifecycle.LiveData
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
@@ -25,6 +24,6 @@ interface TodoDatabaseDao {
     fun clear()
 
     @Query("SELECT * FROM todo_table ORDER BY todoId DESC")
-    fun getAllTODOs(): LiveData<List<Todo>>
+    fun getAllTODOs(): List<Todo>
 }
 
