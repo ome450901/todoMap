@@ -65,6 +65,8 @@ class MapViewModel(
 
     private val _todoTitle = MutableLiveData<String>()
 
+    val allTodoList = databaseDao.getAllTODOs()
+
     fun onMapReady() {
         _isMapReady.value = true
     }
@@ -86,6 +88,14 @@ class MapViewModel(
 
     fun onFabClicked() {
         _bottomSheetState.value = BottomSheetBehavior.STATE_EXPANDED
+//        uiScope.launch {
+//            val todo = allTodoList.value?.first()
+//            todo?.let {
+//                withContext(Dispatchers.IO) {
+//                    databaseDao.delete(it)
+//                }
+//            }
+//        }
     }
 
     fun onBottomSheetClosed() {
@@ -115,10 +125,6 @@ class MapViewModel(
             )
             withContext(Dispatchers.IO) {
                 databaseDao.insert(todo)
-
-                for (aa in databaseDao.getAllTODOs()) {
-                    println(aa.title)
-                }
             }
             _snackbarEvent.value = "Todo created!"
             _bottomSheetState.value = BottomSheetBehavior.STATE_HIDDEN

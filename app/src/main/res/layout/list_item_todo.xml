@@ -9,37 +9,27 @@
             type="com.todomap.map.MapViewModel" />
     </data>
 
-    <merge>
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/materialCardView"
+        android:layout_width="300dp"
+        android:layout_height="wrap_content"
+        android:clickable="true"
+        android:focusable="true"
+        app:cardCornerRadius="8dp"
+        app:cardElevation="16dp"
+        app:cardUseCompatPadding="true">
 
         <LinearLayout
-            android:id="@+id/bottomSheetLayout"
-            style="@style/Widget.MaterialComponents.BottomSheet"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_gravity="bottom"
-            android:clickable="true"
-            android:focusable="true"
+            android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="16dp"
-            app:behavior_fitToContents="false"
-            app:behavior_hideable="true"
-            app:behavior_peekHeight="100dp"
-            app:bottomSheetState="@{viewModel.bottomSheetState}"
-            app:expandedTopOffsetRatio="@{0.2}"
-            app:layout_behavior="@string/bottom_sheet_behavior"
-            app:onBottomSheetClosed="@{viewModel::onBottomSheetClosed}">
-
-            <androidx.appcompat.widget.AppCompatImageView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:background="@drawable/bottom_sheet_controll_bar" />
+            android:padding="16dp">
 
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                android:text="Create a Todo"
+                android:text="My Todo"
                 android:textSize="20dp"
                 android:textStyle="bold" />
 
@@ -50,10 +40,11 @@
                 android:hint="Title">
 
                 <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/tvTitle"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:singleLine="true"
-                    android:afterTextChanged="@{viewModel::onTitleTextChanged}" />
+                    android:afterTextChanged="@{viewModel::onTitleTextChanged}"
+                    android:singleLine="true" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <com.google.android.material.textfield.TextInputLayout
@@ -68,15 +59,8 @@
                     android:text="@{viewModel.markerAddress}" />
             </com.google.android.material.textfield.TextInputLayout>
 
-            <Button
-                android:id="@+id/btnCreate"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:layout_marginTop="16dp"
-                android:onClick="@{viewModel::createTodo}"
-                android:text="Create" />
-
         </LinearLayout>
-    </merge>
+
+
+    </com.google.android.material.card.MaterialCardView>
 </layout>

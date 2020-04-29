@@ -1,9 +1,7 @@
 package com.todomap.database
 
-import androidx.room.Dao
-import androidx.room.Insert
-import androidx.room.Query
-import androidx.room.Update
+import androidx.lifecycle.LiveData
+import androidx.room.*
 
 /**
  * Defines methods for using the SleepNight class with Room.
@@ -17,6 +15,9 @@ interface TodoDatabaseDao {
     @Update
     fun update(todo: Todo)
 
+    @Delete
+    fun delete(todo: Todo)
+
     @Query("SELECT * from todo_table WHERE todoId = :id")
     fun get(id: Long): Todo?
 
@@ -24,6 +25,6 @@ interface TodoDatabaseDao {
     fun clear()
 
     @Query("SELECT * FROM todo_table ORDER BY todoId DESC")
-    fun getAllTODOs(): List<Todo>
+    fun getAllTODOs(): LiveData<List<Todo>>
 }
 

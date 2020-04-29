@@ -8,6 +8,8 @@ import android.view.ViewGroup
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
+import androidx.recyclerview.widget.LinearSnapHelper
+import androidx.recyclerview.widget.SnapHelper
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
@@ -22,6 +24,7 @@ import com.todomap.databinding.FragmentMapBinding
 import permissions.dispatcher.NeedsPermission
 import permissions.dispatcher.OnPermissionDenied
 import permissions.dispatcher.RuntimePermissions
+
 
 @RuntimePermissions
 class MapFragment : Fragment(), OnMapReadyCallback {
@@ -70,8 +73,26 @@ class MapFragment : Fragment(), OnMapReadyCallback {
             ).show()
         })
 
+        val adapter = TodoAdapter()
+        binding.recyclerView.adapter = adapter
+
+        val snapHelper: SnapHelper = LinearSnapHelper()
+        snapHelper.attachToRecyclerView(binding.recyclerView)
+
+        viewModel.allTodoList.observe(viewLifecycleOwner, Observer {
+            adapter.submitList(it)
+        })
+
         binding.fabCreateTodo.setOnClickListener {
             viewModel.onFabClicked()
+
+            if (binding.recyclerView.translationY != 0f) {
+                binding.recyclerView.animate().translationY(0f).start()
+            } else {
+                binding.recyclerView.animate()
+                    .translationY(-binding.recyclerView.height.toFloat())
+                    .start()
+            }
         }
 
         val googleMapFragment =
