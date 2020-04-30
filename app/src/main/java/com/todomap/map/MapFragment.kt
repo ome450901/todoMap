@@ -5,10 +5,12 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.activity.OnBackPressedCallback
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.LinearSnapHelper
+import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.SnapHelper
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
@@ -70,6 +72,16 @@ class MapFragment : Fragment(), OnMapReadyCallback {
             childFragmentManager.findFragmentById(R.id.googleMapFragment) as SupportMapFragment
         googleMapFragment.getMapAsync(this)
 
+        activity?.onBackPressedDispatcher?.addCallback(
+            viewLifecycleOwner,
+            object : OnBackPressedCallback(true) {
+                override fun handleOnBackPressed() {
+                    if (viewModel.onBackPressed().not()) {
+                        activity?.finish()
+                    }
+                }
+            })
+
         return binding.root
     }
 
@@ -92,6 +104,16 @@ class MapFragment : Fragment(), OnMapReadyCallback {
 
         viewModel.allTodoList.observe(viewLifecycleOwner, Observer {
             adapter.submitList(it)
+        })
+
+        binding.recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
+                val centerView = snapHelper.findSnapView(recyclerView.layoutManager)
+                val pos = recyclerView.layoutManager?.getPosition(centerView!!)
+                if (newState == RecyclerView.SCROLL_STATE_IDLE) {
+                    viewModel.onTodoSelected(pos!!)
+                }
+            }
         })
     }
 

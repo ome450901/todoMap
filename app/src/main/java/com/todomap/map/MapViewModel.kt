@@ -82,18 +82,17 @@ class MapViewModel(
     }
 
     private fun retrieveTodos() {
-        firestore.collection("todos")
-            .addSnapshotListener { querySnapshot, _ ->
-                uiScope.launch {
-                    allTodoList.value = withContext(Dispatchers.IO) {
-                        querySnapshot?.map {
-                            it.toObject(Todo::class.java).apply {
-                                id = it.id
-                            }
+        firestore.collection("todos").addSnapshotListener { querySnapshot, _ ->
+            uiScope.launch {
+                allTodoList.value = withContext(Dispatchers.IO) {
+                    querySnapshot?.map {
+                        it.toObject(Todo::class.java).apply {
+                            id = it.id
                         }
                     }
                 }
             }
+        }
     }
 
     fun onMapReady() {
@@ -103,16 +102,12 @@ class MapViewModel(
 
     fun requestLastLocation() {
         uiScope.launch {
-            _location.value = withContext(Dispatchers.IO) {
+            try {
                 val location = locationProvider.getLastLocation().await()
-                LatLng(location.latitude, location.longitude)
+                _location.value = LatLng(location.latitude, location.longitude)
+            } catch (e: Exception) {
+                _snackbarEvent.value = e.message
             }
-//            try {
-//                val location = locationProvider.getLastLocation().await()
-//                _location.value = LatLng(location.latitude, location.longitude)
-//            } catch (e: Exception) {
-//                _snackbarEvent.value = e.message
-//            }
         }
     }
 
@@ -127,6 +122,15 @@ class MapViewModel(
     fun onBottomSheetClosed() {
         _bottomSheetState.value = BottomSheetBehavior.STATE_HIDDEN
     }
+
+    fun onBackPressed(): Boolean {
+        if (_bottomSheetState.value != BottomSheetBehavior.STATE_HIDDEN) {
+            _bottomSheetState.value = BottomSheetBehavior.STATE_HIDDEN
+            return true
+        }
+        return false
+    }
+
 
     fun onMarkerAdded(location: LatLng, marker: Marker) {
         uiScope.launch {
@@ -146,7 +150,8 @@ class MapViewModel(
         val todo = Todo(
             title = todoTitle.value!!,
             latitude = _location.value!!.latitude,
-            longitude = _location.value!!.longitude
+            longitude = _location.value!!.longitude,
+            address = markerAddress.value!!
         )
 
         firestore.collection("todos").add(todo)
@@ -169,6 +174,11 @@ class MapViewModel(
             // Success
             null
         }
+    }
+
+    fun onTodoSelected(position: Int) {
+        val todo = allTodoList.value!![position]
+        _location.value = LatLng(todo.latitude, todo.longitude)
     }
 
     private suspend fun getAddress(location: LatLng) = withContext(Dispatchers.IO) {
