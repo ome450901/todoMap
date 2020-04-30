@@ -72,7 +72,10 @@ class MapFragment : Fragment(), OnMapReadyCallback {
     }
 
     private fun setupTodoRecyclerView(binding: FragmentMapBinding) {
-        val adapter = TodoAdapter()
+        val adapter = TodoAdapter(TodoAdapter.TodoAdapterListener { todoId ->
+            viewModel.onTodoClicked(todoId)
+        })
+
         binding.recyclerView.adapter = adapter
 
         val snapHelper: SnapHelper = LinearSnapHelper()

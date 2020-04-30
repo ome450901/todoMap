@@ -18,6 +18,9 @@ interface TodoDatabaseDao {
     @Delete
     fun delete(todo: Todo)
 
+    @Query("DELETE FROM todo_table WHERE todoID = :id")
+    fun delete(id: Long)
+
     @Query("SELECT * from todo_table WHERE todoId = :id")
     fun get(id: Long): Todo?
 

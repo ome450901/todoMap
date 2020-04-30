@@ -5,8 +5,12 @@
     <data>
 
         <variable
-            name="viewModel"
-            type="com.todomap.map.MapViewModel" />
+            name="todo"
+            type="com.todomap.database.Todo" />
+
+        <variable
+            name="todoAdapterListener"
+            type="com.todomap.map.TodoAdapter.TodoAdapterListener" />
     </data>
 
     <com.google.android.material.card.MaterialCardView
@@ -15,6 +19,7 @@
         android:layout_height="wrap_content"
         android:clickable="true"
         android:focusable="true"
+        android:onClick="@{() -> todoAdapterListener.onClick(todo)}"
         app:cardCornerRadius="8dp"
         app:cardElevation="16dp"
         app:cardUseCompatPadding="true">
@@ -43,8 +48,8 @@
                     android:id="@+id/tvTitle"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:afterTextChanged="@{viewModel::onTitleTextChanged}"
-                    android:singleLine="true" />
+                    android:singleLine="true"
+                    android:text="@{todo.title}" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <com.google.android.material.textfield.TextInputLayout
@@ -55,8 +60,7 @@
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="@{viewModel.markerAddress}" />
+                    android:layout_height="wrap_content" />
             </com.google.android.material.textfield.TextInputLayout>
 
         </LinearLayout>

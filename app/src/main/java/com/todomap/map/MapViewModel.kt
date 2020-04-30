@@ -51,9 +51,7 @@ class MapViewModel(
         )
     }
     private var mapMarker: Marker? = null
-    private val _markerLatLng = MutableLiveData<LatLng>()
     private val _markerAddress = MutableLiveData<String>()
-
     val markerAddress: LiveData<String>
         get() = _markerAddress
     //endregion
@@ -106,14 +104,6 @@ class MapViewModel(
 
     fun onFabClicked(view: View) {
         _bottomSheetState.value = BottomSheetBehavior.STATE_EXPANDED
-//        uiScope.launch {
-//            val todo = allTodoList.value?.first()
-//            todo?.let {
-//                withContext(Dispatchers.IO) {
-//                    databaseDao.delete(it)
-//                }
-//            }
-//        }
     }
 
     fun onBottomSheetClosed() {
@@ -126,7 +116,6 @@ class MapViewModel(
             mapMarker = marker
 
             _location.value = location
-            _markerLatLng.value = location
             _markerAddress.value = getAddress(location)
 
             if (_bottomSheetState.value != BottomSheetBehavior.STATE_HIDDEN) {
@@ -139,12 +128,13 @@ class MapViewModel(
         uiScope.launch {
             val todo = Todo(
                 title = _todoTitle.value!!,
-                latitude = _markerLatLng.value!!.latitude,
-                longitude = _markerLatLng.value!!.longitude
+                latitude = _location.value!!.latitude,
+                longitude = _location.value!!.longitude
             )
             withContext(Dispatchers.IO) {
                 databaseDao.insert(todo)
             }
+
             _snackbarEvent.value = "Todo created!"
             _bottomSheetState.value = BottomSheetBehavior.STATE_HIDDEN
         }
@@ -152,6 +142,14 @@ class MapViewModel(
 
     fun onTitleTextChanged(char: Editable) {
         _todoTitle.value = char.toString()
+    }
+
+    fun onTodoClicked(todoId: Long) {
+        uiScope.launch {
+            withContext(Dispatchers.IO) {
+                databaseDao.delete(todoId)
+            }
+        }
     }
 
     private suspend fun getAddress(location: LatLng) = withContext(Dispatchers.IO) {
@@ -169,7 +167,6 @@ class MapViewModel(
         _bottomNavigationSelectedItem.value = item
         return false
     }
-
 
     override fun onCleared() {
         super.onCleared()

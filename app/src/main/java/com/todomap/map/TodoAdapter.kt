@@ -12,21 +12,24 @@ import com.todomap.databinding.ListItemTodoBinding
  * @author WeiYi Yu
  * @date 2020-04-29
  */
-class TodoAdapter : ListAdapter<Todo, TodoAdapter.TodoViewHolder>(TodoDiffCallback()) {
+class TodoAdapter(private val todoAdapterListener: TodoAdapterListener) :
+    ListAdapter<Todo, TodoAdapter.TodoViewHolder>(TodoDiffCallback()) {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TodoViewHolder {
         return TodoViewHolder.from(parent)
     }
 
     override fun onBindViewHolder(holder: TodoViewHolder, position: Int) {
         val todo = getItem(position)
-        holder.bind(todo)
+        holder.bind(todo, todoAdapterListener)
     }
 
     class TodoViewHolder private constructor(private val binding: ListItemTodoBinding) :
         RecyclerView.ViewHolder(binding.root) {
 
-        fun bind(todo: Todo) {
-            binding.tvTitle.setText(todo.title)
+        fun bind(todo: Todo, todoAdapterListener: TodoAdapterListener) {
+            binding.todo = todo
+            binding.todoAdapterListener = todoAdapterListener
+            binding.executePendingBindings()
         }
 
         companion object {
@@ -45,6 +48,12 @@ class TodoAdapter : ListAdapter<Todo, TodoAdapter.TodoViewHolder>(TodoDiffCallba
 
         override fun areContentsTheSame(oldItem: Todo, newItem: Todo): Boolean {
             return oldItem == newItem
+        }
+    }
+
+    class TodoAdapterListener(private val listener: (todoId: Long) -> Unit) {
+        fun onClick(todo: Todo) {
+            listener(todo.todoId)
         }
     }
 }
