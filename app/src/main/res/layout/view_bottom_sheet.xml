@@ -53,7 +53,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:singleLine="true"
-                    android:afterTextChanged="@{viewModel::onTitleTextChanged}" />
+                    android:text="@={viewModel.todoTitle}" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <com.google.android.material.textfield.TextInputLayout
@@ -65,7 +65,7 @@
                 <com.google.android.material.textfield.TextInputEditText
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="@{viewModel.markerAddress}" />
+                    android:text="@={viewModel.markerAddress}" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <Button

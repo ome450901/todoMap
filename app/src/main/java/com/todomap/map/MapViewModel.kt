@@ -3,7 +3,6 @@ package com.todomap.map
 import android.app.Application
 import android.location.Address
 import android.location.Geocoder
-import android.text.Editable
 import android.view.MenuItem
 import android.view.View
 import androidx.lifecycle.AndroidViewModel
@@ -51,9 +50,7 @@ class MapViewModel(
         )
     }
     private var mapMarker: Marker? = null
-    private val _markerAddress = MutableLiveData<String>()
-    val markerAddress: LiveData<String>
-        get() = _markerAddress
+    val markerAddress = MutableLiveData<String>()
     //endregion
 
     //region bottomSheet
@@ -69,19 +66,20 @@ class MapViewModel(
     val snackbarEvent: LiveData<String>
         get() = _snackbarEvent
 
+    private val _bottomNavigationSelectedItem = MutableLiveData<MenuItem>()
+    val bottomNavigationSelectedItem: LiveData<MenuItem>
+        get() = _bottomNavigationSelectedItem
+
+    val todoTitle = MutableLiveData<String>()
+    val allTodoList = databaseDao.getAllTODOs()
+
     val fabVisible = Transformations.map(_bottomSheetState) {
         it == BottomSheetBehavior.STATE_HIDDEN
     }
 
-    private val _todoTitle = MutableLiveData<String>()
-    val allTodoList = databaseDao.getAllTODOs()
-
-    private val _bottomNavigationSelectedItem = MutableLiveData<MenuItem>()
     val todoListVisible = Transformations.map(_bottomNavigationSelectedItem) {
         _bottomNavigationSelectedItem.value?.itemId == R.id.navigation_todo
     }
-    val bottomNavigationSelectedItem: LiveData<MenuItem>
-        get() = _bottomNavigationSelectedItem
 
     fun onMapReady() {
         _isMapReady.value = true
@@ -116,7 +114,7 @@ class MapViewModel(
             mapMarker = marker
 
             _location.value = location
-            _markerAddress.value = getAddress(location)
+            markerAddress.value = getAddress(location)
 
             if (_bottomSheetState.value != BottomSheetBehavior.STATE_HIDDEN) {
                 _bottomSheetState.value = BottomSheetBehavior.STATE_HALF_EXPANDED
@@ -127,7 +125,7 @@ class MapViewModel(
     fun createTodo(view: View) {
         uiScope.launch {
             val todo = Todo(
-                title = _todoTitle.value!!,
+                title = todoTitle.value!!,
                 latitude = _location.value!!.latitude,
                 longitude = _location.value!!.longitude
             )
@@ -135,13 +133,11 @@ class MapViewModel(
                 databaseDao.insert(todo)
             }
 
+            markerAddress.value = ""
+            todoTitle.value = ""
             _snackbarEvent.value = "Todo created!"
             _bottomSheetState.value = BottomSheetBehavior.STATE_HIDDEN
         }
-    }
-
-    fun onTitleTextChanged(char: Editable) {
-        _todoTitle.value = char.toString()
     }
 
     fun onTodoClicked(todoId: Long) {
