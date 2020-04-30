@@ -16,11 +16,9 @@ import com.google.android.gms.maps.model.Marker
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.ktx.toObject
 import com.todomap.R
 import com.todomap.database.Todo
 import kotlinx.coroutines.*
-import kotlinx.coroutines.tasks.await
 import java.util.*
 
 /**
@@ -83,33 +81,38 @@ class MapViewModel(
         _bottomNavigationSelectedItem.value?.itemId == R.id.navigation_todo
     }
 
-    init {
+    private fun retrieveTodos() {
         firestore.collection("todos")
             .addSnapshotListener { querySnapshot, _ ->
-                val list = mutableListOf<Todo>()
-                querySnapshot?.let {
-                    for (document in querySnapshot) {
-                        list += document.toObject<Todo>().apply {
-                            id = document.id
+                uiScope.launch {
+                    allTodoList.value = withContext(Dispatchers.IO) {
+                        querySnapshot?.map {
+                            it.toObject(Todo::class.java).apply {
+                                id = it.id
+                            }
                         }
                     }
-                    allTodoList.value = list
                 }
             }
     }
 
     fun onMapReady() {
         _isMapReady.value = true
+        retrieveTodos()
     }
 
     fun requestLastLocation() {
         uiScope.launch {
-            try {
+            _location.value = withContext(Dispatchers.IO) {
                 val location = locationProvider.getLastLocation().await()
-                _location.value = LatLng(location.latitude, location.longitude)
-            } catch (e: Exception) {
-                _snackbarEvent.value = e.message
+                LatLng(location.latitude, location.longitude)
             }
+//            try {
+//                val location = locationProvider.getLastLocation().await()
+//                _location.value = LatLng(location.latitude, location.longitude)
+//            } catch (e: Exception) {
+//                _snackbarEvent.value = e.message
+//            }
         }
     }
 
@@ -130,30 +133,29 @@ class MapViewModel(
             mapMarker?.remove()
             mapMarker = marker
 
-            _location.value = location
-            markerAddress.value = getAddress(location)
-
             if (_bottomSheetState.value != BottomSheetBehavior.STATE_HIDDEN) {
                 _bottomSheetState.value = BottomSheetBehavior.STATE_HALF_EXPANDED
             }
+
+            _location.value = location
+            markerAddress.value = getAddress(location)
         }
     }
 
     fun createTodo(view: View) {
-        uiScope.launch {
-            val todo = Todo(
-                title = todoTitle.value!!,
-                latitude = _location.value!!.latitude,
-                longitude = _location.value!!.longitude
-            )
+        val todo = Todo(
+            title = todoTitle.value!!,
+            latitude = _location.value!!.latitude,
+            longitude = _location.value!!.longitude
+        )
 
-            firestore.collection("todos").add(todo).await()
+        firestore.collection("todos").add(todo)
 
-            markerAddress.value = ""
-            todoTitle.value = ""
-            _snackbarEvent.value = "Todo created!"
-            _bottomSheetState.value = BottomSheetBehavior.STATE_HIDDEN
-        }
+        markerAddress.value = ""
+        todoTitle.value = ""
+        _snackbarEvent.value = "Todo created!"
+        _bottomSheetState.value = BottomSheetBehavior.STATE_HIDDEN
+
     }
 
     fun onTodoDeleted(todoId: String) {
