@@ -3,6 +3,7 @@ package com.todomap
 import android.content.res.Resources
 import android.view.View
 import androidx.databinding.BindingAdapter
+import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 
@@ -47,6 +48,14 @@ fun addBottomSheetHiddenCallback(view: View, callback: () -> Unit) {
 }
 //endregion
 
+@BindingAdapter("todoListVisible")
+fun setTodoListVisibility(recyclerView: RecyclerView, todoListVisible: Boolean) {
+    val height = Resources.getSystem().displayMetrics.heightPixels / 2f
+    val translationY = if (todoListVisible) 0f else -height
+    recyclerView.animate()
+        .translationY(translationY)
+        .start()
+}
 
 @BindingAdapter("fabVisible")
 fun setVisibility(fab: FloatingActionButton, fabVisible: Boolean) {

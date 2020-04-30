@@ -3,15 +3,18 @@ package com.todomap.map
 import android.app.Application
 import android.location.Address
 import android.location.Geocoder
-import android.location.Location
 import android.text.Editable
+import android.view.MenuItem
 import android.view.View
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Transformations
+import com.google.android.gms.maps.CameraUpdateFactory
+import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.Marker
+import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.todomap.R
 import com.todomap.database.Todo
@@ -26,56 +29,71 @@ import java.util.*
 class MapViewModel(
     private val databaseDao: TodoDatabaseDao,
     application: Application
-) :
-    AndroidViewModel(application) {
+) : AndroidViewModel(application), BottomNavigationView.OnNavigationItemSelectedListener {
 
     private val viewModelJob = Job()
     private val uiScope = CoroutineScope(Dispatchers.Main + viewModelJob)
 
     private val locationProvider: LocationProvider = LocationProvider(application)
 
+    //region GoogleMaps related
     private val _isMapReady = MutableLiveData<Boolean>()
     val isMapReady: LiveData<Boolean>
         get() = _isMapReady
 
-    private val _location = MutableLiveData<Location>()
-    val location: LiveData<Location>
-        get() = _location
+    private val _location = MutableLiveData<LatLng>()
+    val cameraPosition = Transformations.map(_location) {
+        CameraUpdateFactory.newCameraPosition(
+            CameraPosition.Builder()
+                .target(LatLng(it.latitude, it.longitude))
+                .zoom(17f)
+                .build()
+        )
+    }
+    private var mapMarker: Marker? = null
+    private val _markerLatLng = MutableLiveData<LatLng>()
+    private val _markerAddress = MutableLiveData<String>()
 
-    private val _snackbarEvent = MutableLiveData<String>()
-    val snackbarEvent: LiveData<String>
-        get() = _snackbarEvent
+    val markerAddress: LiveData<String>
+        get() = _markerAddress
+    //endregion
 
+    //region bottomSheet
     private val _bottomSheetState = MutableLiveData<Int>().apply {
         // Initial state
         value = BottomSheetBehavior.STATE_HIDDEN
     }
     val bottomSheetState: LiveData<Int>
         get() = _bottomSheetState
+    //endregion
 
-    private var mapMarker: Marker? = null
-    private val _markerLatLng = MutableLiveData<LatLng>()
-    private val _markerAddress = MutableLiveData<String>()
-    val markerAddress: LiveData<String>
-        get() = _markerAddress
+    private val _snackbarEvent = MutableLiveData<String>()
+    val snackbarEvent: LiveData<String>
+        get() = _snackbarEvent
 
     val fabVisible = Transformations.map(_bottomSheetState) {
         it == BottomSheetBehavior.STATE_HIDDEN
     }
 
     private val _todoTitle = MutableLiveData<String>()
-
     val allTodoList = databaseDao.getAllTODOs()
+
+    private val _bottomNavigationSelectedItem = MutableLiveData<MenuItem>()
+    val todoListVisible = Transformations.map(_bottomNavigationSelectedItem) {
+        _bottomNavigationSelectedItem.value?.itemId == R.id.navigation_todo
+    }
+    val bottomNavigationSelectedItem: LiveData<MenuItem>
+        get() = _bottomNavigationSelectedItem
 
     fun onMapReady() {
         _isMapReady.value = true
     }
 
-    fun onRequestLastLocation() {
+    fun requestLastLocation() {
         uiScope.launch {
             try {
                 val location = locationProvider.getLastLocation().await()
-                _location.value = location
+                _location.value = LatLng(location.latitude, location.longitude)
             } catch (e: Exception) {
                 _snackbarEvent.value = e.message
             }
@@ -86,7 +104,7 @@ class MapViewModel(
         _snackbarEvent.value = getApplication<Application>().getString(R.string.location_required)
     }
 
-    fun onFabClicked() {
+    fun onFabClicked(view: View) {
         _bottomSheetState.value = BottomSheetBehavior.STATE_EXPANDED
 //        uiScope.launch {
 //            val todo = allTodoList.value?.first()
@@ -107,6 +125,7 @@ class MapViewModel(
             mapMarker?.remove()
             mapMarker = marker
 
+            _location.value = location
             _markerLatLng.value = location
             _markerAddress.value = getAddress(location)
 
@@ -145,6 +164,12 @@ class MapViewModel(
             e.message
         }
     }
+
+    override fun onNavigationItemSelected(item: MenuItem): Boolean {
+        _bottomNavigationSelectedItem.value = item
+        return false
+    }
+
 
     override fun onCleared() {
         super.onCleared()

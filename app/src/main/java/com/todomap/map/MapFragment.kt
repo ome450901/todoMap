@@ -10,12 +10,9 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.LinearSnapHelper
 import androidx.recyclerview.widget.SnapHelper
-import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
-import com.google.android.gms.maps.model.CameraPosition
-import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.material.snackbar.Snackbar
 import com.todomap.R
@@ -45,34 +42,36 @@ class MapFragment : Fragment(), OnMapReadyCallback {
 
         binding.viewModel = viewModel
         binding.lifecycleOwner = this
+        binding.bottomNavigation.setOnNavigationItemSelectedListener(viewModel)
+
+        setupTodoRecyclerView(binding)
 
         viewModel.isMapReady.observe(viewLifecycleOwner, Observer { isMapReady ->
             if (isMapReady == true) {
-                requestLastLocationWithPermissionCheck()
-
-                googleMap.setOnMyLocationButtonClickListener {
-                    requestLastLocationWithPermissionCheck()
-                    true
-                }
+                setupGoogleMapWithPermissionCheck()
             }
         })
 
-        viewModel.location.observe(viewLifecycleOwner, Observer {
-            val cameraPosition = CameraPosition.Builder()
-                .target(LatLng(it.latitude, it.longitude))
-                .zoom(17f)
-                .build()
-            googleMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition))
+        viewModel.cameraPosition.observe(viewLifecycleOwner, Observer {
+            googleMap.animateCamera(it)
         })
 
         viewModel.snackbarEvent.observe(viewLifecycleOwner, Observer {
-            Snackbar.make(
-                activity!!.findViewById(android.R.id.content),
-                it,
-                Snackbar.LENGTH_LONG
-            ).show()
+            showSnackBar(it)
         })
 
+        viewModel.bottomNavigationSelectedItem.observe(viewLifecycleOwner, Observer {
+            binding.bottomNavigation.menu.findItem(it.itemId).isChecked = true
+        })
+
+        val googleMapFragment =
+            childFragmentManager.findFragmentById(R.id.googleMapFragment) as SupportMapFragment
+        googleMapFragment.getMapAsync(this)
+
+        return binding.root
+    }
+
+    private fun setupTodoRecyclerView(binding: FragmentMapBinding) {
         val adapter = TodoAdapter()
         binding.recyclerView.adapter = adapter
 
@@ -82,24 +81,19 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         viewModel.allTodoList.observe(viewLifecycleOwner, Observer {
             adapter.submitList(it)
         })
+    }
 
-        binding.fabCreateTodo.setOnClickListener {
-            viewModel.onFabClicked()
+    private fun showSnackBar(message: String) {
+        Snackbar.make(
+            activity!!.findViewById(android.R.id.content),
+            message,
+            Snackbar.LENGTH_LONG
+        ).show()
+    }
 
-            if (binding.recyclerView.translationY != 0f) {
-                binding.recyclerView.animate().translationY(0f).start()
-            } else {
-                binding.recyclerView.animate()
-                    .translationY(-binding.recyclerView.height.toFloat())
-                    .start()
-            }
-        }
-
-        val googleMapFragment =
-            childFragmentManager.findFragmentById(R.id.googleMapFragment) as SupportMapFragment
-        googleMapFragment.getMapAsync(this)
-
-        return binding.root
+    override fun onMapReady(map: GoogleMap) {
+        this.googleMap = map
+        viewModel.onMapReady()
     }
 
     override fun onRequestPermissionsResult(
@@ -111,9 +105,15 @@ class MapFragment : Fragment(), OnMapReadyCallback {
         onRequestPermissionsResult(requestCode, grantResults)
     }
 
-    override fun onMapReady(map: GoogleMap) {
-        this.googleMap = map.apply {
+    @NeedsPermission(Manifest.permission.ACCESS_FINE_LOCATION)
+    fun setupGoogleMap() {
+        googleMap.apply {
             uiSettings.isZoomControlsEnabled = true
+            isMyLocationEnabled = true
+            setOnMyLocationButtonClickListener {
+                requestLastLocationWithPermissionCheck()
+                true
+            }
 
             setOnMapClickListener {
                 val marker = googleMap.addMarker(
@@ -121,23 +121,16 @@ class MapFragment : Fragment(), OnMapReadyCallback {
                         .position(it)
                         .title("Chosen location")
                 )
-                googleMap.animateCamera(CameraUpdateFactory.newLatLng(it))
-
                 viewModel.onMarkerAdded(it, marker)
-            }
-
-            setOnMarkerClickListener {
-                true
             }
         }
 
-        viewModel.onMapReady()
+        requestLastLocationWithPermissionCheck()
     }
 
     @NeedsPermission(Manifest.permission.ACCESS_FINE_LOCATION)
     fun requestLastLocation() {
-        googleMap.isMyLocationEnabled = true
-        viewModel.onRequestLastLocation()
+        viewModel.requestLastLocation()
     }
 
     @OnPermissionDenied(Manifest.permission.ACCESS_FINE_LOCATION)
