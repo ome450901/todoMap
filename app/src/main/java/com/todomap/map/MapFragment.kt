@@ -18,6 +18,7 @@ import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import com.todomap.R
+import com.todomap.database.Todo
 import com.todomap.databinding.FragmentMapBinding
 import permissions.dispatcher.NeedsPermission
 import permissions.dispatcher.OnPermissionDenied
@@ -73,9 +74,16 @@ class MapFragment : Fragment(), OnMapReadyCallback {
     }
 
     private fun setupTodoRecyclerView(binding: FragmentMapBinding) {
-        val adapter = TodoAdapter(TodoAdapter.TodoAdapterListener { todoId ->
-            viewModel.onTodoClicked(todoId)
-        })
+        val adapter =
+            TodoAdapter(TodoAdapter.TodoAdapterListener(object : TodoAdapter.TodoEventListener {
+                override fun onDeleteClick(todoId: String) {
+                    viewModel.onTodoDeleted(todoId)
+                }
+
+                override fun onSaveClick(todo: Todo) {
+                    viewModel.onTodoSaved(todo)
+                }
+            }))
 
         binding.recyclerView.adapter = adapter
 

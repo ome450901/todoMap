@@ -51,9 +51,18 @@ class TodoAdapter(private val todoAdapterListener: TodoAdapterListener) :
         }
     }
 
-    class TodoAdapterListener(private val listener: (todoId: String) -> Unit) {
-        fun onClick(todo: Todo) {
-            listener(todo.id)
+    interface TodoEventListener {
+        fun onDeleteClick(todoId: String)
+        fun onSaveClick(todo: Todo)
+    }
+
+    class TodoAdapterListener(private val listener: TodoEventListener) {
+        fun onDeleteClick(todo: Todo) {
+            listener.onDeleteClick(todo.id)
+        }
+
+        fun onSaveClick(todo: Todo) {
+            listener.onSaveClick(todo)
         }
     }
 }

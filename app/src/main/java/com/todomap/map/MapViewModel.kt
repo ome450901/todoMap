@@ -156,8 +156,17 @@ class MapViewModel(
         }
     }
 
-    fun onTodoClicked(todoId: String) {
+    fun onTodoDeleted(todoId: String) {
         firestore.collection("todos").document(todoId).delete()
+    }
+
+    fun onTodoSaved(todo: Todo) {
+        val todoDocRef = firestore.collection("todos").document(todo.id)
+        firestore.runTransaction { transaction ->
+            transaction.update(todoDocRef, "title", todo.title)
+            // Success
+            null
+        }
     }
 
     private suspend fun getAddress(location: LatLng) = withContext(Dispatchers.IO) {
