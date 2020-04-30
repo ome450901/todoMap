@@ -15,8 +15,9 @@ import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.material.snackbar.Snackbar
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
 import com.todomap.R
-import com.todomap.database.TodoDatabase
 import com.todomap.databinding.FragmentMapBinding
 import permissions.dispatcher.NeedsPermission
 import permissions.dispatcher.OnPermissionDenied
@@ -37,8 +38,8 @@ class MapFragment : Fragment(), OnMapReadyCallback {
             DataBindingUtil.inflate(inflater, R.layout.fragment_map, container, false)
 
         val application = requireNotNull(this.activity).application
-        val databaseDao = TodoDatabase.getInstance(application).todoDatabaseDao
-        viewModel = MapViewModelFactory(databaseDao, application).create(MapViewModel::class.java)
+        val firestore = Firebase.firestore
+        viewModel = MapViewModelFactory(firestore, application).create(MapViewModel::class.java)
 
         binding.viewModel = viewModel
         binding.lifecycleOwner = this

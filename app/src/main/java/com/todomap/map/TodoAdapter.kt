@@ -43,7 +43,7 @@ class TodoAdapter(private val todoAdapterListener: TodoAdapterListener) :
 
     private class TodoDiffCallback : DiffUtil.ItemCallback<Todo>() {
         override fun areItemsTheSame(oldItem: Todo, newItem: Todo): Boolean {
-            return oldItem.todoId == newItem.todoId
+            return oldItem.id == newItem.id
         }
 
         override fun areContentsTheSame(oldItem: Todo, newItem: Todo): Boolean {
@@ -51,9 +51,9 @@ class TodoAdapter(private val todoAdapterListener: TodoAdapterListener) :
         }
     }
 
-    class TodoAdapterListener(private val listener: (todoId: Long) -> Unit) {
+    class TodoAdapterListener(private val listener: (todoId: String) -> Unit) {
         fun onClick(todo: Todo) {
-            listener(todo.todoId)
+            listener(todo.id)
         }
     }
 }

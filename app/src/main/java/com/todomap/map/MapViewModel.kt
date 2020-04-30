@@ -15,10 +15,12 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.Marker
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.bottomsheet.BottomSheetBehavior
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ktx.toObject
 import com.todomap.R
 import com.todomap.database.Todo
-import com.todomap.database.TodoDatabaseDao
 import kotlinx.coroutines.*
+import kotlinx.coroutines.tasks.await
 import java.util.*
 
 /**
@@ -26,7 +28,7 @@ import java.util.*
  * @date 2020-04-24
  */
 class MapViewModel(
-    private val databaseDao: TodoDatabaseDao,
+    private val firestore: FirebaseFirestore,
     application: Application
 ) : AndroidViewModel(application), BottomNavigationView.OnNavigationItemSelectedListener {
 
@@ -71,7 +73,7 @@ class MapViewModel(
         get() = _bottomNavigationSelectedItem
 
     val todoTitle = MutableLiveData<String>()
-    val allTodoList = databaseDao.getAllTODOs()
+    val allTodoList = MutableLiveData<List<Todo>>()
 
     val fabVisible = Transformations.map(_bottomSheetState) {
         it == BottomSheetBehavior.STATE_HIDDEN
@@ -79,6 +81,21 @@ class MapViewModel(
 
     val todoListVisible = Transformations.map(_bottomNavigationSelectedItem) {
         _bottomNavigationSelectedItem.value?.itemId == R.id.navigation_todo
+    }
+
+    init {
+        firestore.collection("todos")
+            .addSnapshotListener { querySnapshot, _ ->
+                val list = mutableListOf<Todo>()
+                querySnapshot?.let {
+                    for (document in querySnapshot) {
+                        list += document.toObject<Todo>().apply {
+                            id = document.id
+                        }
+                    }
+                    allTodoList.value = list
+                }
+            }
     }
 
     fun onMapReady() {
@@ -129,9 +146,8 @@ class MapViewModel(
                 latitude = _location.value!!.latitude,
                 longitude = _location.value!!.longitude
             )
-            withContext(Dispatchers.IO) {
-                databaseDao.insert(todo)
-            }
+
+            firestore.collection("todos").add(todo).await()
 
             markerAddress.value = ""
             todoTitle.value = ""
@@ -140,12 +156,8 @@ class MapViewModel(
         }
     }
 
-    fun onTodoClicked(todoId: Long) {
-        uiScope.launch {
-            withContext(Dispatchers.IO) {
-                databaseDao.delete(todoId)
-            }
-        }
+    fun onTodoClicked(todoId: String) {
+        firestore.collection("todos").document(todoId).delete()
     }
 
     private suspend fun getAddress(location: LatLng) = withContext(Dispatchers.IO) {
